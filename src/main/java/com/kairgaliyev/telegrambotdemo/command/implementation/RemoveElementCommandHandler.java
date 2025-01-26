@@ -5,6 +5,9 @@ import com.kairgaliyev.telegrambotdemo.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * Класс с названием командой и описанием для удаления категории
+ */
 @Component
 public class RemoveElementCommandHandler implements CommandHandler {
 
@@ -21,6 +24,13 @@ public class RemoveElementCommandHandler implements CommandHandler {
         return "Удалить элемент: /removeElement <имя>";
     }
 
+    /**
+     * Метод для удаления категории за счет вызова метода removeCategory В категории сервисе
+     *
+     * @param chatId идентификатор чата
+     * @param args   аргументы команды
+     * @return String
+     */
     @Override
     public String handleCommand(Long chatId, String[] args) {
         if (args.length != 1) {

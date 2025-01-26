@@ -8,6 +8,9 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+/**
+ * Класс для инициализации и запуска телеграмм бота для работы с апи телеграмма
+ */
 @Configuration
 public class BotInitializer {
 
@@ -21,4 +24,5 @@ public class BotInitializer {
         return botsApi;
     }
 }
+
 

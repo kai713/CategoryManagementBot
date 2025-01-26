@@ -5,6 +5,5 @@ public interface CommandHandler {
 
     String getDescription();
 
-    //    void handleCommand(Message message, String[] args);
     String handleCommand(Long chatId, String[] args);
 }

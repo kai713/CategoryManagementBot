@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Сущность для представления категории в базе данных.
+ */
 @Entity
 @Table(uniqueConstraints =
 @UniqueConstraint(columnNames = {"name", "parent_id"}))
@@ -36,11 +39,10 @@ public class Category {
     private Category parent;
 
     /**
-     * List of child categories.
-     * One-to-Many relationship, i.e. one category can have several child categories.
-     * CascadeType.ALL means that all operations with the parent will also affect the child categories.
-     * orphanRemoval = true means that if the child category is no longer associated with the parent, it will be removed.
-     * FetchType.EAGER means that the child categories will be loaded immediately when the parent category is loaded.
+     * Лист children -ов, отношения: parent one ot many, один родитель ко многим дочерним элементам.
+     * CascadeType.ALL означает что все операции (delete, update итд) которые происходят с родительской категории также влияет на дочерние.
+     * orphanRemoval = при значении true если родительский категория не ссылается больше на дочерние категории то дочерние категории удаляются
+     * FetchType.EAGER отключаем
      */
     @OneToMany(mappedBy = "parent",
             cascade = CascadeType.ALL,

@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Команда для вывода списка всех команд
+ */
 @Component
 public class HelpCommandHandler implements CommandHandler {
     private final List<CommandHandler> commandHandlers;
@@ -25,12 +28,16 @@ public class HelpCommandHandler implements CommandHandler {
         return "Показать команды";
     }
 
+    /**
+     * Метод для вывода всех команд и их описании
+     *
+     * @param chatId идентификатор чата
+     * @param args   аргументы команды
+     * @return String
+     */
+
     @Override
     public String handleCommand(Long chatId, String[] args) {
-        System.out.println("Found handlers: " + commandHandlers.size());
-        commandHandlers.forEach(h ->
-                System.out.println(h.getCommand() + " - " + h.getDescription()));
-
         StringBuilder helpText = new StringBuilder("📚 *Доступные команды:*\n\n");
         commandHandlers.forEach(handler -> {
             helpText.append("🔹 ")

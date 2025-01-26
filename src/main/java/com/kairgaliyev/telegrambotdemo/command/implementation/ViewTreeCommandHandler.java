@@ -20,6 +20,12 @@ public class ViewTreeCommandHandler implements CommandHandler {
         return "Показать дерево категорий";
     }
 
+    /**
+     * Метод для отображения всех категории с соответствующей иерархий
+     * @param chatId идентификатор чата
+     * @param args аргументы
+     * @return String
+     */
     @Override
     public String handleCommand(Long chatId, String[] args) {
         try {

@@ -1,6 +1,7 @@
 package com.kairgaliyev.telegrambotdemo.service;
 
 import com.kairgaliyev.telegrambotdemo.entity.Category;
+import com.kairgaliyev.telegrambotdemo.exception.CategoryException;
 import com.kairgaliyev.telegrambotdemo.exception.CategoryNotFoundException;
 import com.kairgaliyev.telegrambotdemo.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
@@ -9,6 +10,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,31 +20,55 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+//TODO refactor
+/**
+ * Сервис для добавления, удаления и получения категории из базы данных.
+ */
 @Service
 public class CategoryService {
+    private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
 
     @Autowired
     private CategoryRepository categoryRepository;
 
-    public Category addRootCategory(String name, Long chatId) throws Exception {
+    /**
+     * Метод для добавления корневой категории
+     * @param name название категории
+     * @param chatId идентификатор чата
+     * @return Category
+     * @throws CategoryNotFoundException
+     */
+    @Transactional
+    public Category addRootCategory(String name, Long chatId) throws CategoryNotFoundException {
 
-        if (categoryRepository.existsByName(name)) {
-            throw new Exception("Category already exists");
+        if (categoryRepository.existsByNameAndChatId(name, chatId)) {
+            throw new CategoryNotFoundException("Категория уже существует");
         }
         Category category = new Category(name, chatId);
+
+        logger.info("{} добавлен как корневой элемент, идентификатор чата: {}", category, chatId);
         return categoryRepository.save(category);
     }
 
+    /**
+     * Метод для добавления дочерней категории к родительской категории
+     * @param parentName название родительской категории
+     * @param childName название дочериной катеогории
+     * @param chatId идентификатор чата
+     * @return Category
+     * @throws CategoryException
+     */
     @Transactional
-    public Category addChildCategory(String parentName, String childName, Long chatId) throws Exception {
+    public Category addChildCategory(String parentName, String childName, Long chatId) throws CategoryException {
         Category parent = categoryRepository.findByNameAndChatId(parentName, chatId)
-                .orElseThrow(() -> new Exception("Родительская категория не найдена: " + parentName));
+                .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена: " + parentName));
 
         boolean childExists = parent.getChildren().stream()
                 .anyMatch(c -> c.getName().equalsIgnoreCase(childName));
 
         if (childExists) {
-            throw new Exception("Дочерняя категория уже существует у этого родителя");
+            //TODO new InvalidCategoryException
+            throw new CategoryException("Дочерняя категория уже существует у этого родителя");
         }
 
         Category child = categoryRepository.findByNameAndChatId(childName, chatId)
@@ -57,30 +84,51 @@ public class CategoryService {
         }
 
         categoryRepository.save(child);
+        logger.info("Дочерна категория: {} добавлена в родитель: {}", parentName, childName);
+
         return child;
     }
 
+    /**
+     * Метод для удаления категории по названию и по идентификатору чата
+     * @param name название категории
+     * @param chatId идентификатор чата
+     * @throws CategoryNotFoundException
+     */
     @Transactional
     public void removeCategory(String name, Long chatId) throws CategoryNotFoundException {
         Category category = categoryRepository.findByNameAndChatId(name, chatId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found: " + name));
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена : " + name));
 
         if (category.getParent() != null) {
             category.getParent().getChildren().remove(category);
         }
 
+        logger.info("Удалена категория: {} идентификатор чата: {}", name, chatId);
         categoryRepository.delete(category);
     }
 
+    /**
+     * Метод для построения дерева на основе всех категории у определенного пользователя
+     * @param chatId идентификатор чата
+     * @return String строковая представление иерархии категории
+     */
     public String buildTree(Long chatId) {
         List<Category> roots = categoryRepository.findByParentIsNullWithChildrenAndChatId(chatId);
         if (roots.isEmpty()) return "Дерево категорий пусто";
 
+        logger.info("Построение дерева с идентификатором чата: {}", chatId);
         StringBuilder sb = new StringBuilder();
         buildTree(roots, "", sb);
         return sb.toString();
     }
 
+    /**
+     * Вспомогательный метод для построения дерева с помощью StringBuilder
+     * @param categories список категории
+     * @param indent абзац
+     * @param sb ссылка на стринг билдер
+     */
     private void buildTree(List<Category> categories, String indent, StringBuilder sb) {
         for (int i = 0; i < categories.size(); i++) {
             Category category = categories.get(i);
@@ -99,19 +147,23 @@ public class CategoryService {
         }
     }
 
-    // CategoryService.java
+    /**
+     * Метод для создания эксел файла на основе всех категории у пользователя с определенным идентификатором
+     * @param chatId идентификатор чата
+     * @return byte[] массив байтов
+     * @throws IOException
+     */
     public byte[] exportToExcel(Long chatId) throws IOException {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
+            logger.info("Начало создание эксел файла, идентификатор чата: {}", chatId);
             Sheet sheet = workbook.createSheet("Categories");
 
-            // Заголовки
             Row headerRow = sheet.createRow(0);
             headerRow.createCell(0).setCellValue("Категория");
             headerRow.createCell(1).setCellValue("Родительская категория");
 
-            // Данные
             List<Category> allCategories = categoryRepository.findByChatId(chatId);
             int rowNum = 1;
             for (Category category : allCategories) {
@@ -123,15 +175,23 @@ public class CategoryService {
             }
 
             workbook.write(outputStream);
+            logger.info("Завершение создание эксел файла, идентификатор чата: {}", chatId);
             return outputStream.toByteArray();
         }
     }
 
+    /**
+     * Метод для импорта эксел файла с чата
+     * @param inputStream входящий поток данных
+     * @param chatId идентификатор чата
+     * @throws Exception
+     */
     @Transactional
     public void importFromExcel(InputStream inputStream, Long chatId) throws Exception {
         Workbook workbook = new XSSFWorkbook(inputStream);
         Sheet sheet = workbook.getSheetAt(0);
 
+        logger.info("Начало импорта эксел файла, идентификатор чата: {}", chatId);
         for (Row row : sheet) {
             if (row.getRowNum() == 0) continue;
 
@@ -154,9 +214,15 @@ public class CategoryService {
                 }
             }
         }
+        logger.info("Завершение импорта эксел файла, идентификатор чата: {}", chatId);
         workbook.close();
     }
 
+    /**
+     * Вспомогательный метод для чтение и обработки ячеек
+     * @param cell ячейка
+     * @return String
+     */
     private String getCellStringValue(Cell cell) {
         if (cell == null) return "";
         return switch (cell.getCellType()) {
@@ -166,6 +232,12 @@ public class CategoryService {
         };
     }
 
+    /**
+     * Метод для проверки на существования категории
+     * @param name название категории
+     * @param chatId идентификатор чата
+     * @return boolean
+     */
     public boolean existsByNameAndChatId(String name, Long chatId) {
         return categoryRepository.existsByNameAndChatId(name, chatId);
     }
