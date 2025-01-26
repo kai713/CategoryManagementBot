@@ -2,55 +2,71 @@ package com.kairgaliyev.telegrambotdemo.entity;
 
 import jakarta.persistence.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(uniqueConstraints =
+@UniqueConstraint(columnNames = {"name", "parent_id"}))
 public class Category {
 
-    public Category() {
-    }
-
-    public Category(Long id) {
-        this.id = id;
-    }
-
-    public Category(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
-
-    public Category(Long id, String name, Category parent) {
-        this.id = id;
-        this.name = name;
-        this.parent = parent;
-    }
-
-    public Category(Long id, String name, Category parent, Set<Category> children) {
-        this.id = id;
-        this.name = name;
-        this.parent = parent;
-        this.children = children;
-    }
-
+    /**
+     * Category ID (primary key).
+     * Value is generated automatically.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    /**
+     * Category name.
+     */
+    @Column(unique = true)
     private String name;
 
+    @Column(nullable = false)
+    private Long chatId;
+
+    /**
+     * Parent category.
+     * Many-to-One relationship, i.e. one category can have one parent.
+     */
     @ManyToOne
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Category> children = new HashSet<>();
+    /**
+     * List of child categories.
+     * One-to-Many relationship, i.e. one category can have several child categories.
+     * CascadeType.ALL means that all operations with the parent will also affect the child categories.
+     * orphanRemoval = true means that if the child category is no longer associated with the parent, it will be removed.
+     * FetchType.EAGER means that the child categories will be loaded immediately when the parent category is loaded.
+     */
+    @OneToMany(mappedBy = "parent",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            orphanRemoval = true)
+    private List<Category> children = new ArrayList<>();
 
-    public Category(String name, Category parent) {
+
+    /**
+     * Constructors, getters and setters
+     */
+    public Category(String name) {
         this.name = name;
-        this.parent = parent;
+    }
+
+    public Category() {
+    }
+
+    public Category(String name, Long chatId) {
+        this.name = name;
+        this.chatId = chatId;
+    }
+
+    public void addChild(Category child) {
+        child.setParent(this);
+        children.add(child);
     }
 
     public Long getId() {
@@ -77,11 +93,11 @@ public class Category {
         this.parent = parent;
     }
 
-    public Set<Category> getChildren() {
+    public List<Category> getChildren() {
         return children;
     }
 
-    public void setChildren(Set<Category> children) {
+    public void setChildren(List<Category> children) {
         this.children = children;
     }
 
@@ -95,4 +111,3 @@ public class Category {
                 '}';
     }
 }
-
