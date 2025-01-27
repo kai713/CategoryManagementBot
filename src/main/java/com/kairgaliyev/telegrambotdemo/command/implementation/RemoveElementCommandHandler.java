@@ -2,6 +2,8 @@ package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -10,9 +12,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RemoveElementCommandHandler implements CommandHandler {
-
     @Autowired
     private CategoryService categoryService;
+    private static final Logger logger = LoggerFactory.getLogger(RemoveElementCommandHandler.class);
+
 
     @Override
     public String getCommand() {
@@ -44,6 +47,7 @@ public class RemoveElementCommandHandler implements CommandHandler {
             categoryService.removeCategory(args[0], chatId);
             return "Элемент успешно удален";
         } catch (Exception e) {
+            logger.error("Ошибка во время удаление элемента, ошибка: {}", e.getMessage());
             return "Ошибка удаления: " + e.getMessage();
         }
     }

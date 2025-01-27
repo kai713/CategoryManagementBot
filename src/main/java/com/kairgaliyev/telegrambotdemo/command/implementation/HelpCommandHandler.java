@@ -1,6 +1,8 @@
 package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,6 +14,7 @@ import java.util.List;
 @Component
 public class HelpCommandHandler implements CommandHandler {
     private final List<CommandHandler> commandHandlers;
+    private static final Logger logger = LoggerFactory.getLogger(HelpCommandHandler.class);
 
     @Autowired
     public HelpCommandHandler(List<CommandHandler> commandHandlers) {
@@ -38,6 +41,7 @@ public class HelpCommandHandler implements CommandHandler {
 
     @Override
     public String handleCommand(Long chatId, String[] args) {
+        logger.info("Вызван метод в HelpCommandHandler c идентификатором чата: {}", chatId);
         StringBuilder helpText = new StringBuilder("📚 *Доступные команды:*\n\n");
         commandHandlers.forEach(handler -> {
             helpText.append("🔹 ")

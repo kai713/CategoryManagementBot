@@ -37,6 +37,7 @@ public class AddElementCommandHandler implements CommandHandler {
      */
     @Override
     public String handleCommand(Long chatId, String[] args) {
+        logger.info("Вызван метод в классе AddElementCommandHandler, с идентификатором чата: {}", chatId);
         try {
             if (args.length < 1 || args.length > 2) {
                 return "Неверный формат команды. Используйте: /addElement [родитель] <имя>";

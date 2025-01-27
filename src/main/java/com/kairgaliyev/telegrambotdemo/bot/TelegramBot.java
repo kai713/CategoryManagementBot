@@ -23,8 +23,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Класс реализующий MessageSender наследуется от TelegramLongPollingBot,
+ * реализует методы для взаимодействия с телеграмм ботом
+ */
 @Component
-
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
 
     @Autowired
@@ -45,18 +48,10 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         commandHandlers.forEach(h -> commandMap.put(h.getCommand(), h));
     }
 
-    @Override
-    public void sendMessage(Long chatId, String text) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId.toString());
-        message.setText(text);
-        try {
-            execute(message);
-        } catch (TelegramApiException e) {
-            e.fillInStackTrace();
-        }
-    }
-
+    /**
+     * Метод срабатывающий при отправке сообщения пользователя
+     * @param update обновление
+     */
     @Override
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
@@ -64,11 +59,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         } else if (update.hasMessage() && update.getMessage().hasDocument()) {
             handleDocumentMessage(update.getMessage());
         }
-    }
-
-    @Override
-    public void onUpdatesReceived(List<Update> updates) {
-        super.onUpdatesReceived(updates);
     }
 
     private void handleTextMessage(Message message) {
@@ -83,6 +73,42 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
             processResult(message.getChatId(), result);
         } else {
             sendMessage(message.getChatId(), "Неизвестная команда. Используйте /help");
+        }
+    }
+
+    private void processResult(Long chatId, String result) {
+        if (result.startsWith("FILE:")) {
+            String[] parts = result.split(":");
+            if (parts.length == 3) {
+                byte[] fileData = Base64.getDecoder().decode(parts[1]);
+                String fileName = parts[2];
+                sendDocument(chatId, fileData, fileName);
+                return;
+            }
+        }
+        sendMessage(chatId, result);
+    }
+
+    private void sendDocument(Long chatId, byte[] data, String fileName) {
+        SendDocument document = new SendDocument();
+        document.setChatId(chatId.toString());
+        document.setDocument(new InputFile(new ByteArrayInputStream(data), fileName));
+        try {
+            execute(document);
+        } catch (TelegramApiException e) {
+            sendMessage(chatId, "Ошибка отправки файла: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void sendMessage(Long chatId, String text) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.setText(text);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.fillInStackTrace();
         }
     }
 
@@ -109,30 +135,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         getFile.setFileId(document.getFileId());
         File file = execute(getFile);
         return new URL(file.getFileUrl(getBotToken())).openStream();
-    }
-
-    private void processResult(Long chatId, String result) {
-        if (result.startsWith("FILE:")) {
-            String[] parts = result.split(":");
-            if (parts.length == 3) {
-                byte[] fileData = Base64.getDecoder().decode(parts[1]);
-                String fileName = parts[2];
-                sendDocument(chatId, fileData, fileName);
-                return;
-            }
-        }
-        sendMessage(chatId, result);
-    }
-
-    private void sendDocument(Long chatId, byte[] data, String fileName) {
-        SendDocument document = new SendDocument();
-        document.setChatId(chatId.toString());
-        document.setDocument(new InputFile(new ByteArrayInputStream(data), fileName));
-        try {
-            execute(document);
-        } catch (TelegramApiException e) {
-            sendMessage(chatId, "Ошибка отправки файла: " + e.getMessage());
-        }
     }
 
     @Override
