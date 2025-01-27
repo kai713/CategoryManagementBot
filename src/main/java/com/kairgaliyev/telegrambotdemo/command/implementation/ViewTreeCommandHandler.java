@@ -22,17 +22,14 @@ public class ViewTreeCommandHandler implements CommandHandler {
 
     /**
      * Метод для отображения всех категории с соответствующей иерархий
+     *
      * @param chatId идентификатор чата
-     * @param args аргументы
+     * @param args   аргументы
      * @return String
      */
     @Override
     public String handleCommand(Long chatId, String[] args) {
-        try {
-            String tree = categoryService.buildTree(chatId);
-            return tree.isEmpty() ? "Дерево пустое" : tree;
-        } catch (Exception e) {
-            return "Ошибка при построении дерева: " + e.getMessage();
-        }
+        String tree = categoryService.buildTree(chatId);
+        return tree.isEmpty() ? "Дерево пустое" : tree;
     }
 }
