@@ -1,6 +1,7 @@
 package com.kairgaliyev.telegrambotdemo.repository;
 
-import com.kairgaliyev.telegrambotdemo.entity.Category;
+import
+        com.kairgaliyev.telegrambotdemo.entity.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

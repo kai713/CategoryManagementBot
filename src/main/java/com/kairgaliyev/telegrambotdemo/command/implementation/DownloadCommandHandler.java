@@ -2,6 +2,7 @@ package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,9 @@ import java.util.Base64;
  * Класс с названием командой и описанием для загрузки эксле файла
  */
 @Component
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class DownloadCommandHandler implements CommandHandler {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(DownloadCommandHandler.class);
 
     @Override

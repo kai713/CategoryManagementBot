@@ -5,6 +5,7 @@ import com.kairgaliyev.telegrambotdemo.exception.CategoryException;
 import com.kairgaliyev.telegrambotdemo.exception.CategoryNotFoundException;
 import com.kairgaliyev.telegrambotdemo.repository.CategoryRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -25,11 +26,11 @@ import java.util.List;
  * Сервис для добавления, удаления и получения категории из базы данных.
  */
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class CategoryService {
     private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     /**
      * Метод для добавления корневой категории

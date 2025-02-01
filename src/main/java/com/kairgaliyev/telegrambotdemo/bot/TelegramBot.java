@@ -4,6 +4,7 @@ import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.command.MessageSender;
 import com.kairgaliyev.telegrambotdemo.command.implementation.UploadCommandHandler;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,18 +25,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Класс реализующий MessageSender наследуется от TelegramLongPollingBot,
- * реализует методы для взаимодействия с телеграмм ботом
+ * Основной класс Telegram-бота, реализующий взаимодействие с пользователями.
+ * Этот класс наследуется от TelegramLongPollingBot и реализует интерфейс MessageSender.
  */
 @Component
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
-
-    @Autowired
-    private List<CommandHandler> commandHandlers;
-    @Autowired
-    private UploadCommandHandler uploadCommandHandler;
-    @Autowired
-    private Map<String, CommandHandler> commandMap = new HashMap<>();
+    private final List<CommandHandler> commandHandlers;
+    private final UploadCommandHandler uploadCommandHandler;
+    private final Map<String, CommandHandler> commandMap = new HashMap<>();
 
     @Value("${telegram.bot.token}")
     private String botToken;
@@ -43,14 +41,19 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     @Value("${telegram.bot.username}")
     private String botUsername;
 
+    /**
+     * Инициализация команд бота после создания бина.
+     * Загружает все обработчики команд в карту для быстрого доступа.
+     */
     @PostConstruct
     public void init() {
         commandHandlers.forEach(h -> commandMap.put(h.getCommand(), h));
     }
 
     /**
-     * Метод срабатывающий при отправке сообщения пользователя
-     * @param update обновление
+     * Метод, вызываемый при получении обновления (нового сообщения или команды).
+     *
+     * @param update объект обновления, содержащий данные о сообщении.
      */
     @Override
     public void onUpdateReceived(Update update) {
@@ -61,6 +64,12 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
+    /**
+     * Обрабатывает текстовые сообщения от пользователей.
+     * Проверяет команду и вызывает соответствующий обработчик.
+     *
+     * @param message текстовое сообщение пользователя.
+     */
     private void handleTextMessage(Message message) {
         String text = message.getText();
         String[] parts = text.split(" ", 2);
@@ -76,6 +85,13 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
+    /**
+     * Обрабатывает результат выполнения команды.
+     * Если результат представляет собой файл, отправляет его пользователю.
+     *
+     * @param chatId ID чата пользователя.
+     * @param result строка-результат выполнения команды.
+     */
     private void processResult(Long chatId, String result) {
         if (result.startsWith("FILE:")) {
             String[] parts = result.split(":");
@@ -89,6 +105,13 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         sendMessage(chatId, result);
     }
 
+    /**
+     * Отправляет документ пользователю.
+     *
+     * @param chatId ID чата пользователя.
+     * @param data массив байтов документа.
+     * @param fileName имя файла.
+     */
     private void sendDocument(Long chatId, byte[] data, String fileName) {
         SendDocument document = new SendDocument();
         document.setChatId(chatId.toString());
@@ -100,6 +123,12 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
+    /**
+     * Отправляет текстовое сообщение пользователю.
+     *
+     * @param chatId ID чата пользователя.
+     * @param text текст сообщения.
+     */
     @Override
     public void sendMessage(Long chatId, String text) {
         SendMessage message = new SendMessage();
@@ -112,6 +141,12 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
+    /**
+     * Обрабатывает загруженные пользователем файлы.
+     * Принимает только файлы формата .xlsx.
+     *
+     * @param message сообщение с документом.
+     */
     private void handleDocumentMessage(Message message) {
         Document doc = message.getDocument();
         if (!doc.getFileName().endsWith(".xlsx")) {
@@ -120,16 +155,21 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
 
         try (InputStream fileStream = downloadFile(doc)) {
-            String result = uploadCommandHandler.handleDocument(
-                    message.getChatId(),
-                    fileStream
-            );
+            String result = uploadCommandHandler.handleDocument(message.getChatId(), fileStream);
             sendMessage(message.getChatId(), result);
         } catch (Exception e) {
             sendMessage(message.getChatId(), "Ошибка: " + e.getMessage());
         }
     }
 
+    /**
+     * Загружает файл с серверов Telegram.
+     *
+     * @param document документ, отправленный пользователем.
+     * @return поток ввода с данными файла.
+     * @throws TelegramApiException если произошла ошибка API Telegram.
+     * @throws IOException если произошла ошибка ввода-вывода.
+     */
     private InputStream downloadFile(Document document) throws TelegramApiException, IOException {
         GetFile getFile = new GetFile();
         getFile.setFileId(document.getFileId());
@@ -145,10 +185,5 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     @Override
     public String getBotToken() {
         return botToken;
-    }
-
-    @Override
-    public void onRegister() {
-        super.onRegister();
     }
 }

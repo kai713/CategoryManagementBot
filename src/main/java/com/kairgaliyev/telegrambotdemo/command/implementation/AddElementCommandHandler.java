@@ -3,6 +3,7 @@ package com.kairgaliyev.telegrambotdemo.command.implementation;
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.entity.Category;
 import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,9 @@ import org.springframework.stereotype.Component;
  * Класс с названием командой и описанием для добавления категории
  */
 @Component
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class AddElementCommandHandler implements CommandHandler {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(AddElementCommandHandler.class);
 
 

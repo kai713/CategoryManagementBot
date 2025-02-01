@@ -1,6 +1,10 @@
 package com.kairgaliyev.telegrambotdemo.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +15,10 @@ import java.util.List;
 @Entity
 @Table(uniqueConstraints =
 @UniqueConstraint(columnNames = {"name", "parent_id"}))
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Category {
 
     /**
@@ -50,17 +58,6 @@ public class Category {
             orphanRemoval = true)
     private List<Category> children = new ArrayList<>();
 
-
-    /**
-     * Constructors, getters and setters
-     */
-    public Category(String name) {
-        this.name = name;
-    }
-
-    public Category() {
-    }
-
     public Category(String name, Long chatId) {
         this.name = name;
         this.chatId = chatId;
@@ -71,45 +68,4 @@ public class Category {
         children.add(child);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Category getParent() {
-        return parent;
-    }
-
-    public void setParent(Category parent) {
-        this.parent = parent;
-    }
-
-    public List<Category> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<Category> children) {
-        this.children = children;
-    }
-
-    @Override
-    public String toString() {
-        return "Category{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", parent=" + parent +
-                ", children=" + children +
-                '}';
-    }
 }

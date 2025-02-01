@@ -3,6 +3,7 @@ package com.kairgaliyev.telegrambotdemo.command.implementation;
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.command.DocumentHandler;
 import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,9 @@ import java.io.InputStream;
  * Класс с названием командой и описанием для импорта эксел файла пользователи
  */
 @Component
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class UploadCommandHandler implements CommandHandler, DocumentHandler {
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(UploadCommandHandler.class);
 
     @Override
