@@ -1,7 +1,8 @@
 package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
-import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryExcelService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,8 @@ import java.util.Base64;
 @Component
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class DownloadCommandHandler implements CommandHandler {
-    private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(DownloadCommandHandler.class);
+    private final CategoryExcelService categoryExcelService;
 
     @Override
     public String getCommand() {
@@ -39,7 +40,7 @@ public class DownloadCommandHandler implements CommandHandler {
     @Override
     public String handleCommand(Long chatId, String[] args) {
         try {
-            byte[] excelData = categoryService.exportToExcel(chatId);
+            byte[] excelData = categoryExcelService.exportToExcel(chatId);
             logger.info("Вызван метод в классе DownloadCommandHandler, идентификатор чата: {}", chatId);
             return "FILE:" + Base64.getEncoder().encodeToString(excelData) + ":categories.xlsx";
         } catch (Exception e) {

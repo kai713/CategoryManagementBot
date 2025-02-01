@@ -1,7 +1,7 @@
 package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
-import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

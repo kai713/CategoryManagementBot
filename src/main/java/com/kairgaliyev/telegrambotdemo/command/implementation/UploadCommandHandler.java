@@ -2,7 +2,8 @@ package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
 import com.kairgaliyev.telegrambotdemo.command.DocumentHandler;
-import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryExcelService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,8 @@ import java.io.InputStream;
 @Component
 @RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class UploadCommandHandler implements CommandHandler, DocumentHandler {
-    private final CategoryService categoryService;
     private static final Logger logger = LoggerFactory.getLogger(UploadCommandHandler.class);
+    private final CategoryExcelService categoryExcelService;
 
     @Override
     public String getCommand() {
@@ -43,11 +44,10 @@ public class UploadCommandHandler implements CommandHandler, DocumentHandler {
      * @return String
      */
 
-    //TODO show correct form of excel img
     @Override
     public String handleDocument(Long chatId, InputStream inputStream) {
         try {
-            categoryService.importFromExcel(inputStream, chatId);
+            categoryExcelService.importFromExcel(inputStream, chatId);
             logger.info("Данные импортированный в чат с идентификатором: {}", chatId);
             return "Данные успешно импортированы";
         } catch (Exception e) {

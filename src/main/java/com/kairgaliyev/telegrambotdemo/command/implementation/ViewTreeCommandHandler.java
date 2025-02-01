@@ -1,7 +1,7 @@
 package com.kairgaliyev.telegrambotdemo.command.implementation;
 
 import com.kairgaliyev.telegrambotdemo.command.CommandHandler;
-import com.kairgaliyev.telegrambotdemo.service.CategoryService;
+import com.kairgaliyev.telegrambotdemo.service.implementation.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,7 @@ public class ViewTreeCommandHandler implements CommandHandler {
      */
     @Override
     public String handleCommand(Long chatId, String[] args) {
-        String tree = categoryService.buildTree(chatId);
+        String tree = categoryService.viewTree(chatId);
         return tree.isEmpty() ? "Дерево пустое" : tree;
     }
 }
